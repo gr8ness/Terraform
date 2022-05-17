@@ -29,17 +29,16 @@ resource "aws_subnet" "subnet2" {
   }
 }
 
-resource "aws_db_instance" "my_db" {
+resource "aws_db_instance" "my_db1" {
   allocated_storage = 20
   identifier = "sampleinstance"
   storage_type = "gp2"
   engine = "mysql"
   engine_version = "5.7"
   instance_class = "db.t3.micro"
-  name = "db_name"
+  name = "my_db1"
   username = "Myadmin"
   password = "MyDBAdmin"
-  parameter_group_name = "my_db.mysql5.7"
   skip_final_snapshot = true
   apply_immediately = true
 }
@@ -48,3 +47,4 @@ resource "aws_subnet" "priv-subnet1" {
   vpc_id = "${aws_vpc.main.id}"
   cidr_block = "10.0.3.0/24"
   availability_zone = "us-east-1a"
+}
