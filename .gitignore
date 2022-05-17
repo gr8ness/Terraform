@@ -1,6 +1,0 @@
-#ignore all .exe files
-*.exe
-
-# ignore ALL files in ANY directory named 
-.terraform/
-terraform-project19\.terraform
