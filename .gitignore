@@ -1,0 +1,5 @@
+#ignore all .exe files
+*.exe
+
+# ignore ALL files in ANY directory named 
+**.\providers\*
