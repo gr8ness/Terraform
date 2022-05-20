@@ -2,4 +2,6 @@
 *.exe
 
 # ignore ALL files in ANY directory named 
-**.\providers\*
+**\providers\*
+**/providers/*
+C:\Users\Dhenry PC\MyTerraform\terraform-project19\.terraform\providers
