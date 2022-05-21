@@ -2,9 +2,9 @@
 # terraform aws create vpc
 resource "aws_vpc" "vpc" {
   cidr_block              =
-  instance_tenancy        = 
-  enable_dns_hostnames    = 
-
+  instance_tenancy        =     
+  enable_dns_hostnames    =     #Determines whether the VPC supports assigning public DNS hostnames to instances with public IP addresses.
+  
   tags      = {
     Name    = 
   }
