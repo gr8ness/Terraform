@@ -1,51 +1,8 @@
-# # download centos image
-
-# provider "docker" {}
-
-# # start the container
-
-# resource "docker_container" "centos_container" {
-#   name  = "centos"
-#   image = docker_image.centos_image.latest
-#   ports {
-#     internal = 1880
-#     external = 1880
-#   }
-# }
-
-
-#####
-# ECS cluster and fargate
-#####
-
-# resource "aws_ecs_cluster_capacity_providers" "centos_cluster" {
-#   cluster_name = aws_ecs_cluster_capacity_providers.centos_cluster.id
-
-
-#   capacity_providers = ["FARGATE_SPOT", "FARGATE"]
-
-#   default_capacity_provider_strategy {
-#     base              = 1
-#     weight            = 100
-#     capacity_provider = "FARGATE_SPOT"
-#   }
-
-
-#   setting {
-#     name  = "containerInsights"
-#     value = "disabled"
-#   }
-# }
-
 resource "aws_ecs_cluster" "docker_cluster" {
   name = "docker-ecs-cluster"
 
 
   capacity_providers = ["FARGATE_SPOT", "FARGATE"]
-
-
-# resource "aws_ecs_cluster_capacity_providers" "example" {
-#   cluster_name = aws_ecs_cluster.docker_cluster.name
 
   default_capacity_provider_strategy {
     capacity_provider = "FARGATE_SPOT"
@@ -70,7 +27,6 @@ module "ecs-fargate_example_core" {
   private_subnet_ids = [aws_subnet.private_subnets_1.id, aws_subnet.private_subnets_2.id]
   cluster_id         = aws_ecs_cluster.docker_cluster.id
 
-  wait_for_steady_state = true
 
   platform_version = "1.4.0" # defaults to LATEST
 
@@ -121,9 +77,7 @@ resource "aws_vpc" "docker_centos_vpc" {
   }
 }
 
-# data "aws_vpc" "docker_vpc" {
 
-# }
 
 #####
 # Public subnet
@@ -206,32 +160,32 @@ resource "aws_subnet" "private_subnets_2" {
 # Security group
 #####
 
-resource "aws_security_group" "allow_tls" {
-  name        = "allow_tls"
-  description = "Allow TLS inbound traffic"
-  vpc_id      = aws_vpc.docker_centos_vpc.id
+# resource "aws_security_group" "allow_tls" {
+#   name        = "allow_tls"
+#   description = "Allow TLS inbound traffic"
+#   vpc_id      = aws_vpc.docker_centos_vpc.id
 
-  ingress {
-    description = "TLS from VPC"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+#   ingress {
+#     description = "TLS from VPC"
+#     from_port   = 80
+#     to_port     = 80
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
 
-  }
+#   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+#   egress {
+#     from_port   = 0
+#     to_port     = 0
+#     protocol    = "-1"
+#     cidr_blocks = ["0.0.0.0/0"]
 
-  }
+#   }
 
-  tags = {
-    Name = "allow_tls"
-  }
-}
+#   tags = {
+#     Name = "allow_tls"
+#   }
+# }
 
 #####
 # Public and Private routing table
