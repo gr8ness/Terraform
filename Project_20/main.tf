@@ -1,16 +1,3 @@
-# terraform {
-#   required_providers {
-#     docker = {
-#       source = "kreuzwerker/docker"
-#     }
-
-#     aws = {
-#       source  = "hashicorp/aws"
-#       version = "~> 4.15.1"
-#     }
-#   }
-# }
-
 # # download centos image
 
 # provider "docker" {}
@@ -31,32 +18,70 @@
 # ECS cluster and fargate
 #####
 
-resource "aws_ecs_cluster" "centos_cluster" {
-  name = "ecs_centos_cluster"
+# resource "aws_ecs_cluster_capacity_providers" "centos_cluster" {
+#   cluster_name = aws_ecs_cluster_capacity_providers.centos_cluster.id
+
+
+#   capacity_providers = ["FARGATE_SPOT", "FARGATE"]
+
+#   default_capacity_provider_strategy {
+#     base              = 1
+#     weight            = 100
+#     capacity_provider = "FARGATE_SPOT"
+#   }
+
+
+#   setting {
+#     name  = "containerInsights"
+#     value = "disabled"
+#   }
+# }
+
+resource "aws_ecs_cluster" "docker_cluster" {
+  name = "docker-ecs-cluster"
+
+
+  capacity_providers = ["FARGATE_SPOT", "FARGATE"]
+
+
+# resource "aws_ecs_cluster_capacity_providers" "example" {
+#   cluster_name = aws_ecs_cluster.docker_cluster.name
+
+  default_capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+  }
+
+  # setting {
+  #   name  = "containerInsights"
+  #   value = "disabled"
+  # }
 }
+# }
 
 module "ecs-fargate_example_core" {
   source  = "umotif-public/ecs-fargate/aws"
-  version = "~>6.5.0"
+  version = "~> 6.5.0"
+
 
   # sg_name_prefix     = "my-security-group-name" # uncomment if you want to name security group with specific name
+
   name_prefix        = "ecs-fargate_example_core"
   vpc_id             = aws_vpc.docker_centos_vpc.id
-  private_subnet_ids = ["subnet-0b1935076b50bdfd2"]
-  cluster_id         = aws_ecs_cluster.centos_cluster.id
+  private_subnet_ids = [aws_subnet.private_subnets_1.id, aws_subnet.private_subnets_2.id]
+  cluster_id         = aws_ecs_cluster.docker_cluster.id
 
   wait_for_steady_state = true
 
   platform_version = "1.4.0" # defaults to LATEST
 
-  task_container_image   = "centos:latest"
+  task_container_image   = "centos"
   task_definition_cpu    = 256
   task_definition_memory = 512
 
   task_container_port             = 80
   task_container_assign_public_ip = true
 
-   load_balanced = false
+  load_balanced = false
 
   target_groups = [
     {
@@ -70,16 +95,17 @@ module "ecs-fargate_example_core" {
     path = "/"
   }
 
-  task_stop_timeout = 90
+  # task_stop_timeout = 90
 
   # depends_on = [
   #   module.alb
   # ]
   tags = {
     "Environment" = "dev"
-    "Project" = "LUIT20"
+    "Project"     = "LUIT20"
   }
 }
+
 
 #####
 # VPC
@@ -96,7 +122,7 @@ resource "aws_vpc" "docker_centos_vpc" {
 }
 
 # data "aws_vpc" "docker_vpc" {
-  
+
 # }
 
 #####
@@ -133,35 +159,47 @@ resource "aws_subnet" "public-subnet-2" {
 #####
 # Private subnet
 #####
-resource "aws_subnet" "private_subnets" {
-  vpc_id             = aws_vpc.docker_centos_vpc.id
-  cidr_block         = "10.0.3.0/24"
+resource "aws_subnet" "private_subnets_1" {
+  vpc_id            = aws_vpc.docker_centos_vpc.id
+  cidr_block        = "10.0.3.0/24"
   availability_zone = "us-east-1a"
-  
+
   tags = {
-      Name = "priv_subnet1_"
-    }
+    Name = "priv_subnet1_"
+  }
 }
+
+resource "aws_subnet" "private_subnets_2" {
+  vpc_id            = aws_vpc.docker_centos_vpc.id
+  cidr_block        = "10.0.4.0/24"
+  availability_zone = "us-east-1a"
+
+  tags = {
+    Name = "priv_subnet2_"
+  }
+}
+
+
 
 
 #####
 # Public and Private IGW
 #####
-resource "aws_internet_gateway" "igw_docker_centos_public" {
-  vpc_id = aws_vpc.docker_centos_vpc.id
+# resource "aws_internet_gateway" "igw_docker_centos_public" {
+#   vpc_id = aws_vpc.docker_centos_vpc.id
 
-  tags = {
-    Name = "igw_docker_centos_public"
-  }
-}
+#   tags = {
+#     Name = "igw_docker_centos_public"
+#   }
+# }
 
-resource "aws_internet_gateway" "igw_docker_centos_priv" {
-  vpc_id = aws_vpc.docker_centos_vpc.id
+# resource "aws_internet_gateway" "igw_docker_centos_priv" {
+#   vpc_id = aws_vpc.docker_centos_vpc.id
 
-  tags = {
-    Name = "igw_docker_centos_priv"
-  }
-}
+#   tags = {
+#     Name = "igw_docker_centos_priv"
+#   }
+# }
 
 
 #####
@@ -199,23 +237,23 @@ resource "aws_security_group" "allow_tls" {
 # Public and Private routing table
 #####
 
-resource "aws_route_table" "public-route-table" {
-  vpc_id = aws_vpc.docker_centos_vpc.id
+# resource "aws_route_table" "public-route-table" {
+#   vpc_id = aws_vpc.docker_centos_vpc.id
 
-  route {
-    cidr_block = "10.0.0.0/16"
-    gateway_id = aws_internet_gateway.igw_docker_centos_public.id
-  }
+#   route {
+#     cidr_block = "0.0.0.0/0"
+#     gateway_id = aws_internet_gateway.igw_docker_centos_public.id
+#   }
 
-  tags = {
-    Name = "public_route_table_docker"
-  }
-}
+#   tags = {
+#     Name = "public_route_table_docker"
+#   }
+# }
 
-resource "aws_route_table" "private-route-table" {
-  vpc_id = aws_vpc.docker_centos_vpc.id
+# resource "aws_route_table" "private-route-table" {
+#   vpc_id = aws_vpc.docker_centos_vpc.id
 
-  tags = {
-    Name = "praivate_route_table_docker"
-  }
-}
+#   tags = {
+#     Name = "praivate_route_table_docker"
+#   }
+# }
