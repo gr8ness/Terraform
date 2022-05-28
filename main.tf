@@ -1,7 +1,11 @@
 module "ec2" {
   source = "./modules/ec2"
-  
-  instance_ami = var.instance_ami
-  instance_type = var.instance_type
+
   }
+
+module "sg" {
+  source = "./modules/vpc"
+  
+  cidr_block = var.cidr_block
+}
 
