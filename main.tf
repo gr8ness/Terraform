@@ -9,3 +9,7 @@ module "sg" {
   cidr_block = var.cidr_block
 }
 
+# variable "location" {
+#   description = "aws region"
+#   default = "us-east-1"
+# }
